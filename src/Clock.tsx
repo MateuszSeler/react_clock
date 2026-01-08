@@ -12,13 +12,10 @@ export class Clock extends React.Component<Props, State> {
     time: new Date().toUTCString().slice(-12, -4),
   };
 
+  private interval: number | null = null;
+
   componentDidMount(): void {
-    setInterval(() => {
-      this.setState({ time: new Date().toUTCString().slice(-12, -4) }, () => {
-        // eslint-disable-next-line no-console
-        console.log(this.state.time);
-      });
-    }, 1000);
+    this.startInterval();
   }
 
   componentDidUpdate(prevProps: Props): void {
@@ -26,6 +23,10 @@ export class Clock extends React.Component<Props, State> {
       // eslint-disable-next-line no-console
       console.warn(`Renamed from ${prevProps.name} to ${this.props.name}`);
     }
+  }
+
+  componentWillUnmount(): void {
+    this.stopInterval();
   }
 
   render() {
@@ -38,5 +39,25 @@ export class Clock extends React.Component<Props, State> {
         <span className="Clock__time">{this.state.time}</span>
       </div>
     );
+  }
+
+  startInterval(): void {
+    if (this.interval !== null) {
+      return;
+    }
+
+    setInterval(() => {
+      this.setState({ time: new Date().toUTCString().slice(-12, -4) }, () => {
+        // eslint-disable-next-line no-console
+        console.log(this.state.time);
+      });
+    }, 1000);
+  }
+
+  stopInterval(): void {
+    if (this.interval !== null) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
   }
 }
