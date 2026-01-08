@@ -1,5 +1,12 @@
 import React from 'react';
 import './App.scss';
+import { Clock } from './Clock';
+
+type Props = {};
+type State = {
+  hasClock: boolean;
+  name: string;
+};
 
 function getRandomName(): string {
   const value = Date.now().toString().slice(-4);
@@ -7,31 +14,57 @@ function getRandomName(): string {
   return `Clock-${value}`;
 }
 
-export const App: React.FC = () => {
-  const today = new Date();
-  let clockName = 'Clock-0';
+export class App extends React.Component<Props, State> {
+  state: State = {
+    hasClock: true,
+    name: 'Clock-0',
+  };
 
-  // This code starts a timer
-  const timerId = window.setInterval(() => {
-    clockName = getRandomName();
-  }, 3300);
+  private interval: number | null = null;
 
-  // this code stops the timer
-  window.clearInterval(timerId);
+  componentDidMount(): void {
+    this.startInterval();
 
-  return (
-    <div className="App">
-      <h1>React clock</h1>
+    document.addEventListener('click', () => {
+      this.setState({ hasClock: true });
+    });
 
-      <div className="Clock">
-        <strong className="Clock__name">{clockName}</strong>
+    document.addEventListener('contextmenu', (event: MouseEvent) => {
+      event.preventDefault();
+      this.setState({ hasClock: false });
+    });
+  }
 
-        {' time is '}
-
-        <span className="Clock__time">
-          {today.toUTCString().slice(-12, -4)}
-        </span>
+  render() {
+    return (
+      <div className="App">
+        <h1>React clock</h1>
+        {this.state.hasClock && <Clock name={this.state.name} />}
       </div>
-    </div>
-  );
-};
+    );
+  }
+
+  startInterval(): void {
+    if (this.interval !== null) {
+      return;
+    }
+
+    this.interval = window.setInterval(() => {
+      const prevName: string = this.state.name;
+
+      this.setState({ name: getRandomName() }, () => {
+        if (this.state.hasClock) {
+          // eslint-disable-next-line no-console
+          console.warn(`Renamed from ${prevName} to ${this.state.name}`);
+        }
+      });
+    }, 3300);
+  }
+
+  stopInterval(): void {
+    if (this.interval !== null) {
+      clearInterval(this.interval);
+      this.interval = null;
+    }
+  }
+}
