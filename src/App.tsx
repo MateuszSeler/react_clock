@@ -5,7 +5,7 @@ import { Clock } from './Clock';
 type Props = {};
 type State = {
   hasClock: boolean;
-  name: string;
+  clockName: string;
 };
 
 function getRandomName(): string {
@@ -17,29 +17,28 @@ function getRandomName(): string {
 export class App extends React.Component<Props, State> {
   state: State = {
     hasClock: true,
-    name: 'Clock-0',
+    clockName: 'Clock-0',
   };
 
   private interval: number | null = null;
 
   componentDidMount(): void {
     this.startInterval();
+    document.addEventListener('click', this.handleLeftClick);
+    document.addEventListener('contextmenu', this.handleRightClick);
+  }
 
-    document.addEventListener('click', () => {
-      this.setState({ hasClock: true });
-    });
-
-    document.addEventListener('contextmenu', (event: MouseEvent) => {
-      event.preventDefault();
-      this.setState({ hasClock: false });
-    });
+  componentWillUnmount(): void {
+    this.stopInterval();
+    document.removeEventListener('click', this.handleLeftClick);
+    document.removeEventListener('contextmenu', this.handleRightClick);
   }
 
   render() {
     return (
       <div className="App">
         <h1>React clock</h1>
-        {this.state.hasClock && <Clock name={this.state.name} />}
+        {this.state.hasClock && <Clock name={this.state.clockName} />}
       </div>
     );
   }
@@ -50,14 +49,7 @@ export class App extends React.Component<Props, State> {
     }
 
     this.interval = window.setInterval(() => {
-      const prevName: string = this.state.name;
-
-      this.setState({ name: getRandomName() }, () => {
-        if (this.state.hasClock) {
-          // eslint-disable-next-line no-console
-          console.warn(`Renamed from ${prevName} to ${this.state.name}`);
-        }
-      });
+      this.setState({ clockName: getRandomName() });
     }, 3300);
   }
 
@@ -67,4 +59,13 @@ export class App extends React.Component<Props, State> {
       this.interval = null;
     }
   }
+
+  handleLeftClick = (): void => {
+    this.setState({ hasClock: true });
+  };
+
+  handleRightClick = (event: MouseEvent): void => {
+    event.preventDefault();
+    this.setState({ hasClock: false });
+  };
 }
